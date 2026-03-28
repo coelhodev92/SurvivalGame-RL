@@ -1,23 +1,29 @@
 # SurvivalGame-RL
 RogueLike
 
-Build v2 27/03/26
-Patch Notes
+**Conceito geral**
 
-**Sistemas Novos**
+A ideia do projeto é criar um jogo no estilo survivor roguelike, com loop de gameplay parecido com Vampire Survivors, mas com uma ambientação de fantasia medieval carismática inspirada na sensação de MMORPGs clássicos.
 
-- Classes e Arquétipos — primeiro personagem definido como Mago com identidade visual e temática própria
-- Auto Attack Temático — Fireball substituiu o projétil genérico, com rotação durante o voo
-- Sistema de Atributos — substituiu os upgrades genéricos por Inteligência, Sabedoria, Vitalidade e Agilidade inspirados em Ragnarok Online
-- Skills do Mago — Lança de Fogo e Nova de Fogo implementadas com cooldown próprio e escalonamento por atributos
-- Mini Boss — inimigo especial que spawna a cada 60 segundos com mais vida e velocidade reduzida
-- Sistema de Baú — mini boss dropa baú ao morrer que concede uma skill aleatória ao player
-- Notificação de Skill — texto flutuante dourado informa qual skill foi desbloqueada ao pegar o baú
+A principal referência emocional e estética é aquela sensação de mundo de fantasia leve, com classes clássicas, monstros variados, progressão de personagem, mapas com identidade forte e um universo rico em aventuras.
 
+**Objetivo**
 
-**Melhorias**
+Jogo com:
 
-- Números Flutuantes — dano e XP coletado agora aparecem visivelmente durante o jogo
-- Mini Boss dropa mais XP — 8 orbes ao morrer contra 1 dos inimigos normais
-- Painel de Atributos no Level Up — jogador visualiza seus atributos atuais durante a escolha
-- Correção de bug — atributo errado sendo aplicado ao subir de nível
+- visão top-down.
+- combate automático ou semiautomático.
+- hordas de inimigos.
+- progressão por experiência, level up e atributos.
+- escolhas de skills durante a partida.
+- partidas curtas ou médias.
+- builds diferentes a cada run.
+- possibilidade de meta progressão entre partidas.
+
+**Direção de referência**
+
+A referência desejada é:
+
+- o loop viciante e progressão de run de jogos como Vampire Survivors.
+- a sensação de mundo, fantasia e variedade de arquétipos que lembram MMORPGs clássicos.
+- uma experiência que misture nostalgia de fantasia medieval com gameplay moderna de survivor.
