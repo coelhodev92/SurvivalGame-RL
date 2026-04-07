@@ -1,33 +1,37 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [Header("Prefab")]
+    [Header("Prefab Base")]
     public GameObject enemyPrefab;
 
+    [Header("Tipos de Inimigo")]
+    public List<EnemyData> enemyTypes = new List<EnemyData>();
+    public List<int> spawnWeights     = new List<int>();
+
     [Header("Configurações de Spawn")]
-    public float initialSpawnInterval = 2f;
-    public float minimumSpawnInterval = 0.5f;
-    public float spawnIntervalReduction = 0.1f;
-    public float reductionEverySeconds = 10f;
+    public float initialSpawnInterval    = 2f;
+    public float minimumSpawnInterval    = 0.5f;
+    public float spawnIntervalReduction  = 0.1f;
+    public float reductionEverySeconds   = 10f;
 
     [Header("Distância de Spawn")]
     public float spawnDistanceFromCamera = 1.5f;
 
-    private float spawnTimer = 0f;
-    private float reductionTimer = 0f;
+    private float spawnTimer       = 0f;
+    private float reductionTimer   = 0f;
     private float currentSpawnInterval;
     private Camera mainCamera;
 
     private void Start()
     {
-        mainCamera = Camera.main;
-        currentSpawnInterval = initialSpawnInterval;
+        mainCamera            = Camera.main;
+        currentSpawnInterval  = initialSpawnInterval;
     }
 
     private void Update()
     {
-        // Controla o tempo entre spawns
         spawnTimer += Time.deltaTime;
         if (spawnTimer >= currentSpawnInterval)
         {
@@ -35,7 +39,6 @@ public class EnemySpawner : MonoBehaviour
             SpawnEnemy();
         }
 
-        // Reduz o intervalo de spawn com o tempo
         reductionTimer += Time.deltaTime;
         if (reductionTimer >= reductionEverySeconds)
         {
@@ -47,46 +50,76 @@ public class EnemySpawner : MonoBehaviour
     private void SpawnEnemy()
     {
         Vector2 spawnPosition = GetSpawnPositionOutsideCamera();
-        Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+        GameObject enemy      = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+
+        // Aplica dados aleatórios baseados nos pesos
+        EnemyData selectedData = GetWeightedRandomEnemy();
+        if (selectedData != null)
+        {
+            EnemyController controller = enemy.GetComponent<EnemyController>();
+            if (controller != null)
+                controller.data = selectedData;
+        }
+    }
+
+    private EnemyData GetWeightedRandomEnemy()
+    {
+        if (enemyTypes.Count == 0) return null;
+
+        // Calcula peso total
+        int totalWeight = 0;
+        for (int i = 0; i < enemyTypes.Count; i++)
+        {
+            int weight = i < spawnWeights.Count ? spawnWeights[i] : 1;
+            totalWeight += weight;
+        }
+
+        // Sorteia baseado nos pesos
+        int roll = Random.Range(0, totalWeight);
+        int cumulative = 0;
+
+        for (int i = 0; i < enemyTypes.Count; i++)
+        {
+            int weight = i < spawnWeights.Count ? spawnWeights[i] : 1;
+            cumulative += weight;
+
+            if (roll < cumulative)
+                return enemyTypes[i];
+        }
+
+        return enemyTypes[0];
     }
 
     private Vector2 GetSpawnPositionOutsideCamera()
     {
-        // Calcula os limites da câmera em world space
         float camHeight = mainCamera.orthographicSize;
-        float camWidth = mainCamera.orthographicSize * mainCamera.aspect;
+        float camWidth  = mainCamera.orthographicSize * mainCamera.aspect;
+        Vector2 camPos  = mainCamera.transform.position;
 
-        Vector2 camPosition = mainCamera.transform.position;
-
-        // Escolhe um dos 4 lados aleatoriamente
-        int side = Random.Range(0, 4);
+        int side        = Random.Range(0, 4);
         Vector2 spawnPos = Vector2.zero;
 
         switch (side)
         {
-            case 0: // Cima
+            case 0:
                 spawnPos = new Vector2(
-                    Random.Range(camPosition.x - camWidth, camPosition.x + camWidth),
-                    camPosition.y + camHeight + spawnDistanceFromCamera
-                );
+                    Random.Range(camPos.x - camWidth, camPos.x + camWidth),
+                    camPos.y + camHeight + spawnDistanceFromCamera);
                 break;
-            case 1: // Baixo
+            case 1:
                 spawnPos = new Vector2(
-                    Random.Range(camPosition.x - camWidth, camPosition.x + camWidth),
-                    camPosition.y - camHeight - spawnDistanceFromCamera
-                );
+                    Random.Range(camPos.x - camWidth, camPos.x + camWidth),
+                    camPos.y - camHeight - spawnDistanceFromCamera);
                 break;
-            case 2: // Direita
+            case 2:
                 spawnPos = new Vector2(
-                    camPosition.x + camWidth + spawnDistanceFromCamera,
-                    Random.Range(camPosition.y - camHeight, camPosition.y + camHeight)
-                );
+                    camPos.x + camWidth + spawnDistanceFromCamera,
+                    Random.Range(camPos.y - camHeight, camPos.y + camHeight));
                 break;
-            case 3: // Esquerda
+            case 3:
                 spawnPos = new Vector2(
-                    camPosition.x - camWidth - spawnDistanceFromCamera,
-                    Random.Range(camPosition.y - camHeight, camPosition.y + camHeight)
-                );
+                    camPos.x - camWidth - spawnDistanceFromCamera,
+                    Random.Range(camPos.y - camHeight, camPos.y + camHeight));
                 break;
         }
 
@@ -96,7 +129,6 @@ public class EnemySpawner : MonoBehaviour
     private void ReduceSpawnInterval()
     {
         currentSpawnInterval -= spawnIntervalReduction;
-        currentSpawnInterval = Mathf.Max(currentSpawnInterval, minimumSpawnInterval);
-        Debug.Log($"Spawn interval agora: {currentSpawnInterval}s");
+        currentSpawnInterval  = Mathf.Max(currentSpawnInterval, minimumSpawnInterval);
     }
 }

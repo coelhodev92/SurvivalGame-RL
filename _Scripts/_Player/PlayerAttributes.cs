@@ -4,19 +4,34 @@ using System;
 public class PlayerAttributes : MonoBehaviour
 {
     [Header("Atributos Base")]
-    public int intelligence = 5;  // Dano das skills
-    public int wisdom = 5;        // Cooldown das skills
-    public int vitality = 5;      // Vida máxima
-    public int agility = 5;       // Velocidade
+    public int intelligence = 5;
+    public int wisdom       = 5;
+    public int vitality     = 5;
+    public int agility      = 5;
 
-    // Eventos para outros sistemas reagirem
     public event Action OnAttributesChanged;
 
-    // Multiplicadores calculados a partir dos atributos
-    public float DamageMultiplier => 1f + (intelligence - 5) * 0.1f;
+    // Chamado pelo PlayerClassLoader após aplicar a classe
+    public void ApplyPermanentBonuses()
+    {
+        if (SaveManager.Instance == null) return;
+
+        SaveData data = SaveManager.Instance.GetData();
+
+        intelligence += data.permanentIntelligence;
+        wisdom       += data.permanentWisdom;
+        vitality     += data.permanentVitality;
+        agility      += data.permanentAgility;
+
+        Debug.Log($"Bônus permanentes aplicados — INT:{intelligence} WIS:{wisdom} VIT:{vitality} AGI:{agility}");
+
+        OnAttributesChanged?.Invoke();
+    }
+
+    public float DamageMultiplier   => 1f + (intelligence - 5) * 0.1f;
     public float CooldownMultiplier => 1f - (wisdom - 5) * 0.05f;
-    public float MaxHealthBonus => (vitality - 5) * 10f;
-    public float MoveSpeedBonus => (agility - 5) * 0.2f;
+    public float MaxHealthBonus     => (vitality - 5) * 10f;
+    public float MoveSpeedBonus     => (agility - 5) * 0.2f;
 
     public void IncreaseAttribute(AttributeType type, int amount = 1)
     {
@@ -29,7 +44,6 @@ public class PlayerAttributes : MonoBehaviour
         }
 
         OnAttributesChanged?.Invoke();
-        Debug.Log($"{type} agora: {GetAttributeValue(type)}");
     }
 
     public int GetAttributeValue(AttributeType type)
@@ -43,12 +57,4 @@ public class PlayerAttributes : MonoBehaviour
             default:                         return 0;
         }
     }
-}
-
-public enum AttributeType
-{
-    Intelligence,
-    Wisdom,
-    Vitality,
-    Agility
 }
