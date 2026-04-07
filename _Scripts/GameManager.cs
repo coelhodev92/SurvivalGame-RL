@@ -5,7 +5,8 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     private float survivalTime = 0f;
-    private bool isGameOver = false;
+    private int totalKills     = 0;
+    private bool isGameOver    = false;
 
     private void Awake()
     {
@@ -14,21 +15,21 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
-        
-        // Garante que o timeScale começa em 1
         Time.timeScale = 1f;
-        Debug.Log($"GameManager iniciado. TimeScale: {Time.timeScale}");
     }
 
     private void Update()
     {
         if (!isGameOver)
-        {
             survivalTime += Time.deltaTime;
-//            Debug.Log($"TimeScale: {Time.timeScale}");
-        }
-}
+    }
+
+    public void RegisterKill()
+    {
+        totalKills++;
+    }
 
     public void TriggerGameOver()
     {
@@ -37,11 +38,13 @@ public class GameManager : MonoBehaviour
         isGameOver = true;
         Time.timeScale = 0f;
 
-        Debug.Log($"Game Over! Tempo sobrevivido: {GetFormattedTime()}");
+        // Registra a run no save
+        if (SaveManager.Instance != null)
+            SaveManager.Instance.RegisterRunEnd(survivalTime, totalKills);
 
         GameOverScreen gameOverScreen = FindAnyObjectByType<GameOverScreen>();
         if (gameOverScreen != null)
-            gameOverScreen.Show(GetFormattedTime());
+            gameOverScreen.Show(GetFormattedTime(), totalKills);
     }
 
     public string GetFormattedTime()

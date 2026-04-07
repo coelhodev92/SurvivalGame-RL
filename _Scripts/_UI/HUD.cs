@@ -16,6 +16,9 @@ public class HUD : MonoBehaviour
     [Header("Timer")]
     public TextMeshProUGUI timerText;
 
+    [Header("Moedas")]
+    public TextMeshProUGUI coinsText;
+
     private Health playerHealth;
     private PlayerExperience playerExperience;
 
@@ -25,7 +28,7 @@ public class HUD : MonoBehaviour
 
         if (player != null)
         {
-            playerHealth = player.GetComponent<Health>();
+            playerHealth     = player.GetComponent<Health>();
             playerExperience = player.GetComponent<PlayerExperience>();
         }
         else
@@ -42,10 +45,13 @@ public class HUD : MonoBehaviour
         if (playerExperience != null)
         {
             xpBar.fillAmount = playerExperience.GetCurrentXP() / playerExperience.GetXPToNextLevel();
-            levelText.text = $"Nível {playerExperience.GetCurrentLevel()}";
+            levelText.text   = $"Nível {playerExperience.GetCurrentLevel()}";
         }
 
         if (timerText != null && GameManager.Instance != null)
             timerText.text = GameManager.Instance.GetFormattedTime();
+
+        if (coinsText != null && SaveManager.Instance != null)
+            coinsText.text = $"$ {SaveManager.Instance.GetData().totalCoins}";
     }
 }

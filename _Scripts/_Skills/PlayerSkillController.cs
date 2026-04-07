@@ -7,20 +7,41 @@ public class PlayerSkillController : MonoBehaviour
     private List<BaseSkill> lockedSkills = new List<BaseSkill>();
     private PlayerAttributes playerAttributes;
     private SkillUnlockNotification notification;
+    private string currentClassName = "";
 
     private void Awake()
     {
         playerAttributes = GetComponent<PlayerAttributes>();
-        notification = FindAnyObjectByType<SkillUnlockNotification>();
+        notification     = FindAnyObjectByType<SkillUnlockNotification>();
+    }
+
+    // Chamado pelo PlayerClassLoader após carregar a classe
+    public void InitializeForClass(string className)
+    {
+        currentClassName = className;
+        activeSkills.Clear();
+        lockedSkills.Clear();
 
         BaseSkill[] allSkills = GetComponents<BaseSkill>();
+
         foreach (BaseSkill skill in allSkills)
         {
-            if (skill.enabled)
-                activeSkills.Add(skill);
-            else
-                lockedSkills.Add(skill);
+            // Desativa todas primeiro
+            skill.enabled = false;
+
+            // Ignora skills de outras classes
+            if (!string.IsNullOrEmpty(skill.ownerClass) && skill.ownerClass != className)
+                continue;
+
+            // Skills sem ownerClass não pertencem a nenhuma classe — ignora
+            if (string.IsNullOrEmpty(skill.ownerClass))
+                continue;
+
+            // Adiciona na lista correta
+            lockedSkills.Add(skill);
         }
+
+        Debug.Log($"Skills inicializadas para {className} — {lockedSkills.Count} skills bloqueadas.");
     }
 
     public void RegisterSkill(BaseSkill skill)
@@ -37,18 +58,17 @@ public class PlayerSkillController : MonoBehaviour
             return;
         }
 
-        int randomIndex = Random.Range(0, lockedSkills.Count);
-        BaseSkill skillToUnlock = lockedSkills[randomIndex];
+        int randomIndex          = Random.Range(0, lockedSkills.Count);
+        BaseSkill skillToUnlock  = lockedSkills[randomIndex];
 
         skillToUnlock.enabled = true;
         activeSkills.Add(skillToUnlock);
         lockedSkills.RemoveAt(randomIndex);
 
-        // Mostra a notificação com o nome legível da skill
         if (notification != null)
             notification.ShowNotification(skillToUnlock.SkillName);
 
-        Debug.Log($"Skill desbloqueada: {skillToUnlock.GetType().Name}");
+        Debug.Log($"Skill desbloqueada: {skillToUnlock.SkillName}");
     }
 
     public PlayerAttributes GetAttributes() => playerAttributes;

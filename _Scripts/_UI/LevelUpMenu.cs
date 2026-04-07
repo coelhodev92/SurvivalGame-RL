@@ -23,6 +23,7 @@ public class LevelUpMenu : MonoBehaviour
     private Health playerHealth;
     private PlayerMovement playerMovement;
     private AutoShooter autoShooter;
+    private PlayerClassLoader classLoader;
 
     private void Awake()
     {
@@ -35,6 +36,7 @@ public class LevelUpMenu : MonoBehaviour
             playerHealth     = player.GetComponent<Health>();
             playerMovement   = player.GetComponent<PlayerMovement>();
             autoShooter      = player.GetComponent<AutoShooter>();
+            classLoader      = player.GetComponent<PlayerClassLoader>();
         }
 
         menuPanel.SetActive(false);
@@ -71,31 +73,58 @@ public class LevelUpMenu : MonoBehaviour
     {
         if (playerAttributes == null) return;
 
-        intText.text = $"Inteligência: <b>{playerAttributes.intelligence}</b>";
-        wisText.text = $"Sabedoria: <b>{playerAttributes.wisdom}</b>";
-        vitText.text = $"Vitalidade: <b>{playerAttributes.vitality}</b>";
-        agiText.text = $"Agilidade: <b>{playerAttributes.agility}</b>";
+        SaveData saveData = SaveManager.Instance != null ? SaveManager.Instance.GetData() : null;
+
+        int permInt = saveData != null ? saveData.permanentIntelligence : 0;
+        int permWis = saveData != null ? saveData.permanentWisdom : 0;
+        int permVit = saveData != null ? saveData.permanentVitality : 0;
+        int permAgi = saveData != null ? saveData.permanentAgility : 0;
+
+        int baseInt = playerAttributes.intelligence - permInt;
+        int baseWis = playerAttributes.wisdom - permWis;
+        int baseVit = playerAttributes.vitality - permVit;
+        int baseAgi = playerAttributes.agility - permAgi;
+
+        intText.text = permInt > 0 ? $"Inteligência: <b>{baseInt}</b> +{permInt}" : $"Inteligência: <b>{baseInt}</b>";
+        wisText.text = permWis > 0 ? $"Sabedoria: <b>{baseWis}</b> +{permWis}"    : $"Sabedoria: <b>{baseWis}</b>";
+        vitText.text = permVit > 0 ? $"Vitalidade: <b>{baseVit}</b> +{permVit}"   : $"Vitalidade: <b>{baseVit}</b>";
+        agiText.text = permAgi > 0 ? $"Agilidade: <b>{baseAgi}</b> +{permAgi}"    : $"Agilidade: <b>{baseAgi}</b>";
     }
 
     private void SelectAttribute(int index)
     {
         AttributeData chosen = currentOptions[index];
         playerAttributes.IncreaseAttribute(chosen.attributeType, chosen.amount);
-        ApplyAttributeEffects();
+        ApplyAttributeEffects(chosen.attributeType);
 
         menuPanel.SetActive(false);
         Time.timeScale = 1f;
     }
 
-    private void ApplyAttributeEffects()
+    private void ApplyAttributeEffects(AttributeType changedAttribute)
     {
-        if (playerHealth != null)
-            playerHealth.SetMaxHealth(100f + playerAttributes.MaxHealthBonus);
+        if (playerAttributes == null || classLoader == null) return;
 
-        if (playerMovement != null)
-            playerMovement.moveSpeed = 5f + playerAttributes.MoveSpeedBonus;
+        switch (changedAttribute)
+        {
+            case AttributeType.Vitality:
+                if (playerHealth != null)
+                    playerHealth.SetMaxHealth(classLoader.classBaseMaxHealth + playerAttributes.MaxHealthBonus);
+                break;
 
-        if (autoShooter != null)
-            autoShooter.projectileDamage = 20f * playerAttributes.DamageMultiplier;
+            case AttributeType.Agility:
+                if (playerMovement != null)
+                    playerMovement.moveSpeed = classLoader.classBaseMoveSpeed + playerAttributes.MoveSpeedBonus;
+                break;
+
+            case AttributeType.Intelligence:
+                if (autoShooter != null)
+                    autoShooter.projectileDamage = classLoader.classBaseDamage * playerAttributes.DamageMultiplier;
+                break;
+
+            case AttributeType.Wisdom:
+                // Calculado dinamicamente nas skills
+                break;
+        }
     }
 }

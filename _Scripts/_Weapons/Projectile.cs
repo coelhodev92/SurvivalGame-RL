@@ -3,17 +3,19 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     [Header("Configurações")]
-    public float speed = 10f;
-    public float damage = 20f;
+    public float speed    = 10f;
+    public float damage   = 20f;
     public float lifetime = 3f;
 
     private Vector2 direction;
-    private bool hasHit = false; // evita duplo hit
+    private bool hasHit = false;
 
     public void SetDirection(Vector2 dir)
     {
         direction = dir.normalized;
     }
+
+    protected Vector2 GetDirection() => direction;
 
     private void Start()
     {
